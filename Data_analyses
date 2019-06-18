@@ -1,0 +1,47 @@
+import tweepy
+import csv
+import pandas as pd
+import datetime
+import time
+auth = tweepy.OAuthHandler("gqoFkfh3eDI1KkxmlMNOuNHrq", "5PZgXteQavYbZoowKMemmMheniewC0IYg3UsFWx2SBVa6jb9YZ")
+auth.set_access_token("1138837177998163968-ivoH5IbtWX1jyrnhXHAJsrU3IHa8Qf", "PGZaOx4YCkTnK48XXnAs5Q0Kl2htvYQVrKDFLacUWcZws")
+api = tweepy.API(auth)
+
+query = 'avengers'
+max_tweets = 160 # 180 tweets par minutes
+nb_iterations = 20
+date = datetime.datetime.now()
+date_str = str(date.year) + "-" + str(date.month) + "-" + str(date.day)
+month_dict = {'Jan' : '01' , 'Feb' : '02', 'Mar':'03', 'Apr':'04', 'May':'05', 'Jun':'06', 'Jul':'07', 'Agu':'08', 
+              'Sep':'09', 'Nov':'10',
+             'Dec':'12'}
+dico_tweets={}
+dico_tweets['id_user']=[]
+dico_tweets['id_tweet']=[]
+dico_tweets['text']=[]
+dico_tweets['created_at'] = []
+frame = []
+for i in range(nb_iterations):
+    try:
+        searched_tweets = [status for status in tweepy.Cursor(api.search, q=query, until=date_str, lang="en").items(max_tweets)]
+        #création d'un fichier csv pour stocker les données colléctées
+    except:
+        print('Attendre un peu')
+        time.sleep(310) # plus de 5min
+        print("C'est reparti")
+        
+    for tweet in searched_tweets:
+        dico_tweets['id_tweet']+=[tweet._json['id_str']]
+        dico_tweets['id_user']+=[tweet._json['user']['id_str']]
+        dico_tweets['text']+=[tweet._json['text']] 
+        dico_tweets['created_at'] +=[tweet._json['created_at']]
+    df = pd.DataFrame(dico_tweets, columns = ['id_tweet','id_user', 'text', 'created_at'])
+    frame.append(df)
+    derniere_data_date = dico_tweets['created_at'][0].split()
+    date_str = derniere_data_date[5] + '-' + month_dict[derniere_data_date[1]] + '-' + derniere_data_date[2]
+    time.sleep(60)
+
+framy = pd.concat(frame)
+framy.to_csv("C:\\Users\\Nicolas LAUBE\\Documents\\Centralesupélec\\DATABASE.csv")
+print(df)
+
